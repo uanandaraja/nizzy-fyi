@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { motion } from 'motion/react'
 import { ArrowUpRight } from '@phosphor-icons/react'
 import ProjectModal from './ProjectModal'
+import WorksGallery from './WorksGallery'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -101,15 +102,20 @@ export default function Lander() {
             >
               Contact
             </motion.a>
-            <motion.a
-              href="#works"
+            <motion.button
+              onClick={() => {
+                const worksSection = document.getElementById('works-section')
+                if (worksSection) {
+                  worksSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }
+              }}
               className="inline-flex items-center rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-foreground transition hover:bg-muted"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               transition={{ type: 'spring', stiffness: 400, damping: 20 }}
             >
               See works
-            </motion.a>
+            </motion.button>
           </motion.div>
         </motion.section>
 
@@ -169,6 +175,8 @@ export default function Lander() {
           </motion.div>
         </motion.section>
       </main>
+
+      <WorksGallery />
 
       <ProjectModal isOpen={selectedProject !== null} onClose={() => setSelectedProject(null)} project={selectedProject} />
     </>
