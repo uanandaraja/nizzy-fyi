@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { CaretLeft, CaretRight } from '@phosphor-icons/react'
+import { CaretLeft, CaretRight, SpinnerGap } from '@phosphor-icons/react'
 
 const allImages = [
   '/works/ruangringkas-1.webp',
@@ -23,20 +23,31 @@ const allImages = [
 function ImageWithSkeleton({ src, alt }: { src: string; alt: string }) {
   const [loaded, setLoaded] = useState(false)
 
-  return (
-    <div className="relative aspect-[16/10] w-full overflow-hidden rounded-lg bg-muted">
-      {!loaded && (
+  if (!loaded) {
+    return (
+      <div className="relative aspect-[16/10] w-full overflow-hidden rounded-lg bg-muted">
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="h-8 w-8 animate-pulse rounded-full bg-muted-foreground/20" />
+          <SpinnerGap size={32} className="animate-spin text-muted-foreground/40" />
         </div>
-      )}
-      <img
-        src={src}
-        alt={alt}
-        className={`h-full w-full object-cover transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
-        onLoad={() => setLoaded(true)}
-      />
-    </div>
+        <img
+          src={src}
+          alt={alt}
+          className="absolute inset-0 h-full w-full object-cover opacity-0"
+          onLoad={() => setLoaded(true)}
+        />
+      </div>
+    )
+  }
+
+  return (
+    <motion.img
+      src={src}
+      alt={alt}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="h-auto w-full object-cover"
+    />
   )
 }
 
