@@ -20,6 +20,26 @@ const allImages = [
   '/works/svelting-1.webp',
 ]
 
+function ImageWithSkeleton({ src, alt }: { src: string; alt: string }) {
+  const [loaded, setLoaded] = useState(false)
+
+  return (
+    <div className="relative aspect-[16/10] w-full overflow-hidden rounded-lg bg-muted">
+      {!loaded && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="h-8 w-8 animate-pulse rounded-full bg-muted-foreground/20" />
+        </div>
+      )}
+      <img
+        src={src}
+        alt={alt}
+        className={`h-full w-full object-cover transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+        onLoad={() => setLoaded(true)}
+      />
+    </div>
+  )
+}
+
 export default function WorksGallery() {
   const [currentIndex, setCurrentIndex] = useState(0)
 
@@ -67,10 +87,9 @@ export default function WorksGallery() {
                   exit={{ opacity: 0, scale: 0.98 }}
                   transition={{ duration: 0.25, ease: 'easeOut' }}
                 >
-                  <img
+                  <ImageWithSkeleton
                     src={allImages[currentIndex]}
                     alt={`Work ${currentIndex + 1}`}
-                    className="h-auto w-full object-cover"
                   />
                 </motion.div>
               </AnimatePresence>
@@ -96,10 +115,9 @@ export default function WorksGallery() {
                 exit={{ opacity: 0, scale: 0.98 }}
                 transition={{ duration: 0.25, ease: 'easeOut' }}
               >
-                <img
+                <ImageWithSkeleton
                   src={allImages[currentIndex]}
                   alt={`Work ${currentIndex + 1}`}
-                  className="h-auto w-full object-cover"
                 />
               </motion.div>
             </AnimatePresence>

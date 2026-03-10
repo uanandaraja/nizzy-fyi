@@ -13,7 +13,11 @@ export const Route = createRootRoute({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'nizzy.fyi',
+        title: 'Nizzy',
+      },
+      {
+        name: 'description',
+        content: 'I build products and tinker with design.',
       },
     ],
     links: [
