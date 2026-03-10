@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
+import { useState, useEffect } from 'react'
+import { LazyMotion, domAnimation, m, AnimatePresence } from 'motion/react'
 import { CaretLeft, CaretRight, SpinnerGap } from '@phosphor-icons/react'
 
 const allImages = [
@@ -20,10 +20,11 @@ const allImages = [
   '/works/svelting-1.webp',
 ]
 
-function ImageWithSkeleton({ src, alt }: { src: string; alt: string }) {
+function ImageWithSkeleton({ src, alt, isPreloaded }: { src: string; alt: string; isPreloaded: boolean }) {
   const [loaded, setLoaded] = useState(false)
+  const showImage = isPreloaded || loaded
 
-  if (!loaded) {
+  if (!showImage) {
     return (
       <div className="relative aspect-[16/10] w-full overflow-hidden rounded-lg bg-muted">
         <div className="absolute inset-0 flex items-center justify-center">
@@ -40,7 +41,7 @@ function ImageWithSkeleton({ src, alt }: { src: string; alt: string }) {
   }
 
   return (
-    <motion.img
+    <m.img
       src={src}
       alt={alt}
       initial={{ opacity: 0 }}
@@ -53,6 +54,18 @@ function ImageWithSkeleton({ src, alt }: { src: string; alt: string }) {
 
 export default function WorksGallery() {
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
+
+  // Preload all images silently in the background
+  useEffect(() => {
+    allImages.forEach((src) => {
+      const img = new Image()
+      img.src = src
+      img.onload = () => {
+        setLoadedImages((prev) => new Set(prev).add(src))
+      }
+    })
+  }, [])
 
   const nextImage = () => {
     setCurrentIndex((prev) => (prev + 1) % allImages.length)
@@ -77,21 +90,22 @@ export default function WorksGallery() {
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-8">
         {/* Gallery container */}
         <div className="relative">
+        <LazyMotion features={domAnimation}>
           {/* Desktop: Buttons outside image */}
           <div className="hidden sm:flex sm:items-center sm:gap-4">
-            <motion.button
+            <m.button
               onClick={prevImage}
               className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-border bg-background/80 backdrop-blur-sm"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <CaretLeft size={20} />
-            </motion.button>
+            </m.button>
             
             {/* Main image display */}
             <div className="flex-1">
               <AnimatePresence mode="wait">
-                <motion.div
+                <m.div
                   key={currentIndex}
                   initial={{ opacity: 0, scale: 0.98 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -101,25 +115,26 @@ export default function WorksGallery() {
                   <ImageWithSkeleton
                     src={allImages[currentIndex]}
                     alt={`Work ${currentIndex + 1}`}
+                    isPreloaded={loadedImages.has(allImages[currentIndex])}
                   />
-                </motion.div>
+                </m.div>
               </AnimatePresence>
             </div>
             
-            <motion.button
+            <m.button
               onClick={nextImage}
               className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-border bg-background/80 backdrop-blur-sm"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <CaretRight size={20} />
-            </motion.button>
+            </m.button>
           </div>
 
           {/* Mobile: Buttons overlay at bottom */}
           <div className="relative sm:hidden">
             <AnimatePresence mode="wait">
-              <motion.div
+              <m.div
                 key={currentIndex}
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -129,34 +144,35 @@ export default function WorksGallery() {
                 <ImageWithSkeleton
                   src={allImages[currentIndex]}
                   alt={`Work ${currentIndex + 1}`}
+                  isPreloaded={loadedImages.has(allImages[currentIndex])}
                 />
-              </motion.div>
+              </m.div>
             </AnimatePresence>
 
             {/* Navigation buttons - bottom overlay for mobile */}
             <div className="absolute inset-x-4 bottom-4 flex justify-between">
-              <motion.button
+              <m.button
                 onClick={prevImage}
                 className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background/80 backdrop-blur-sm"
                 whileTap={{ scale: 0.95 }}
               >
                 <CaretLeft size={20} />
-              </motion.button>
-              <motion.button
+              </m.button>
+              <m.button
                 onClick={nextImage}
                 className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background/80 backdrop-blur-sm"
                 whileTap={{ scale: 0.95 }}
               >
                 <CaretRight size={20} />
-              </motion.button>
+              </m.button>
             </div>
           </div>
 
           {/* Image indicators */}
           <div className="mt-6 flex justify-center gap-2">
-            {allImages.map((_, index) => (
+            {allImages.map((src, index) => (
               <button
-                key={index}
+                key={src}
                 onClick={() => setCurrentIndex(index)}
                 className={`h-2 rounded-full transition-all ${
                   index === currentIndex
@@ -166,6 +182,7 @@ export default function WorksGallery() {
               />
             ))}
           </div>
+        </LazyMotion>
         </div>
       </div>
     </section>
