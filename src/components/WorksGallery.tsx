@@ -11,6 +11,8 @@ const allImages = [
   '/works/tulis-2.webp',
   '/works/personalbrand-1.webp',
   '/works/personalbrand-2.webp',
+  '/works/roticanai-1.webp',
+  '/works/roticanai-2.webp',
   '/works/cpbroodstock-1.webp',
   '/works/mdec-1.webp',
   '/works/mded-2.webp',

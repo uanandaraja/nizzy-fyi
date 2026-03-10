@@ -76,6 +76,12 @@ export default function Lander() {
           animate="visible"
         >
           <div className="space-y-6">
+            <motion.img
+              src="/nizzy-ascii.png"
+              alt="Nizzy"
+              className="h-32 w-auto rounded-lg opacity-80"
+              variants={itemVariants}
+            />
             <motion.p className="text-base text-foreground sm:text-lg" variants={itemVariants}>
               Hi, I'm Nizzy.
             </motion.p>
