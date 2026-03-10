@@ -22,7 +22,7 @@ const allImages = [
 
 function GalleryImage({ src, alt, isLoaded }: { src: string; alt: string; isLoaded: boolean }) {
   return (
-    <div className="relative aspect-[16/10] w-full overflow-hidden rounded-lg bg-muted">
+    <div className="relative aspect-[16/10] w-full overflow-hidden rounded-md">
       {/* Skeleton - shown until image is loaded */}
       <AnimatePresence>
         {!isLoaded && (
@@ -36,15 +36,15 @@ function GalleryImage({ src, alt, isLoaded }: { src: string; alt: string; isLoad
           </m.div>
         )}
       </AnimatePresence>
-      
-      {/* Image - always rendered, opacity transitions */}
+
+      {/* Image - always rendered, opacity transitions, object-contain preserves borders */}
       <m.img
         src={src}
         alt={alt}
         initial={{ opacity: 0 }}
         animate={{ opacity: isLoaded ? 1 : 0 }}
         transition={{ duration: 0.3 }}
-        className="absolute inset-0 h-full w-full object-cover"
+        className="absolute inset-0 h-full w-full object-contain"
       />
     </div>
   )
