@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { LazyMotion, domAnimation, m, AnimatePresence } from 'motion/react'
 import { CaretLeft, CaretRight, SpinnerGap } from '@phosphor-icons/react'
 
@@ -20,60 +20,70 @@ const allImages = [
   '/works/svelting-1.webp',
 ]
 
-function ImageWithSkeleton({ src, alt, isPreloaded }: { src: string; alt: string; isPreloaded: boolean }) {
-  const [loaded, setLoaded] = useState(false)
-  const showImage = isPreloaded || loaded
-
-  if (!showImage) {
-    return (
-      <div className="relative aspect-[16/10] w-full overflow-hidden rounded-lg bg-muted">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <SpinnerGap size={32} className="animate-spin text-muted-foreground/40" />
-        </div>
-        <img
-          src={src}
-          alt={alt}
-          className="absolute inset-0 h-full w-full object-cover opacity-0"
-          onLoad={() => setLoaded(true)}
-        />
-      </div>
-    )
-  }
-
+function GalleryImage({ src, alt, isLoaded }: { src: string; alt: string; isLoaded: boolean }) {
   return (
-    <m.img
-      src={src}
-      alt={alt}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
-      className="h-auto w-full object-cover"
-    />
+    <div className="relative aspect-[16/10] w-full overflow-hidden rounded-lg bg-muted">
+      {/* Skeleton - shown until image is loaded */}
+      <AnimatePresence>
+        {!isLoaded && (
+          <m.div
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="absolute inset-0 flex items-center justify-center"
+          >
+            <SpinnerGap size={32} className="animate-spin text-muted-foreground/40" />
+          </m.div>
+        )}
+      </AnimatePresence>
+      
+      {/* Image - always rendered, opacity transitions */}
+      <m.img
+        src={src}
+        alt={alt}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isLoaded ? 1 : 0 }}
+        transition={{ duration: 0.3 }}
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+    </div>
   )
 }
 
 export default function WorksGallery() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
+  const [direction, setDirection] = useState(0)
 
   // Preload all images silently in the background
   useEffect(() => {
     allImages.forEach((src) => {
       const img = new Image()
-      img.src = src
       img.onload = () => {
-        setLoadedImages((prev) => new Set(prev).add(src))
+        setLoadedImages((prev) => {
+          const next = new Set(prev)
+          next.add(src)
+          return next
+        })
       }
+      img.src = src
     })
   }, [])
 
   const nextImage = () => {
+    setDirection(1)
     setCurrentIndex((prev) => (prev + 1) % allImages.length)
   }
 
   const prevImage = () => {
+    setDirection(-1)
     setCurrentIndex((prev) => (prev - 1 + allImages.length) % allImages.length)
   }
+
+  const jumpToImage = useCallback((index: number) => {
+    setDirection(index > currentIndex ? 1 : -1)
+    setCurrentIndex(index)
+  }, [currentIndex])
 
   return (
     <section id="works-section" className="relative overflow-hidden py-20">
@@ -102,20 +112,21 @@ export default function WorksGallery() {
               <CaretLeft size={20} />
             </m.button>
             
-            {/* Main image display */}
-            <div className="flex-1">
-              <AnimatePresence mode="wait">
+            {/* Main image display - fixed container prevents layout shift */}
+            <div className="flex-1 overflow-hidden">
+              <AnimatePresence mode="wait" initial={false} custom={direction}>
                 <m.div
                   key={currentIndex}
-                  initial={{ opacity: 0, scale: 0.98 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.98 }}
+                  custom={direction}
+                  initial={{ opacity: 0, x: direction > 0 ? 20 : -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: direction > 0 ? -20 : 20 }}
                   transition={{ duration: 0.25, ease: 'easeOut' }}
                 >
-                  <ImageWithSkeleton
+                  <GalleryImage
                     src={allImages[currentIndex]}
                     alt={`Work ${currentIndex + 1}`}
-                    isPreloaded={loadedImages.has(allImages[currentIndex])}
+                    isLoaded={loadedImages.has(allImages[currentIndex])}
                   />
                 </m.div>
               </AnimatePresence>
@@ -132,19 +143,20 @@ export default function WorksGallery() {
           </div>
 
           {/* Mobile: Buttons overlay at bottom */}
-          <div className="relative sm:hidden">
-            <AnimatePresence mode="wait">
+          <div className="relative sm:hidden overflow-hidden">
+            <AnimatePresence mode="wait" initial={false} custom={direction}>
               <m.div
                 key={currentIndex}
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
+                custom={direction}
+                initial={{ opacity: 0, x: direction > 0 ? 20 : -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: direction > 0 ? -20 : 20 }}
                 transition={{ duration: 0.25, ease: 'easeOut' }}
               >
-                <ImageWithSkeleton
+                <GalleryImage
                   src={allImages[currentIndex]}
                   alt={`Work ${currentIndex + 1}`}
-                  isPreloaded={loadedImages.has(allImages[currentIndex])}
+                  isLoaded={loadedImages.has(allImages[currentIndex])}
                 />
               </m.div>
             </AnimatePresence>
@@ -173,7 +185,7 @@ export default function WorksGallery() {
             {allImages.map((src, index) => (
               <button
                 key={src}
-                onClick={() => setCurrentIndex(index)}
+                onClick={() => jumpToImage(index)}
                 className={`h-2 rounded-full transition-all ${
                   index === currentIndex
                     ? 'w-8 bg-foreground'
