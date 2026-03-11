@@ -6,7 +6,7 @@
     "#/*": "./src/*"
   },
   "scripts": {
-    "dev": "vite dev --port 3000",
+    "dev": "vite dev --port 4173",
     "build": "vite build",
     "preview": "bun run build && wrangler dev",
     "test": "vitest run",
