@@ -20,7 +20,7 @@ const allImages = [
   '/works/svelting-1.webp',
 ]
 
-const AUTO_SLIDE_INTERVAL = 2000 // 2 seconds
+const AUTO_SLIDE_INTERVAL = 3000 // 3 seconds
 
 function GalleryImage({ src, alt, isLoaded }: { src: string; alt: string; isLoaded: boolean }) {
   return (
